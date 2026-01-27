@@ -1,0 +1,12 @@
+---
+- hosts: masters
+  become: true
+  tasks:
+    - name: Incluir tareas para el master
+      include_tasks: master.yml
+
+- hosts: workers
+  become: true
+  tasks:
+    - name: Incluir tareas para los workers
+      include_tasks: worker.yml

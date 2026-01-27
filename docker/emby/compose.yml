@@ -1,0 +1,27 @@
+services:
+  emby:
+    image: emby/embyserver
+    container_name: embyserver
+    hostname: emby
+    gpus: all
+    environment:
+      - UID=1000 # The UID to run emby as (default: 2)
+      - GID=100 # The GID to run emby as (default 2)
+      - GIDLIST=100 # A comma-separated list of additional GIDs to run emby as (default: 2)
+    volumes:
+      - /home/pabpereza/media:/mnt/share1 # Media directory
+      - /home/pabpereza/media:/mnt/share2 # Media directory
+      - emby:/config
+    ports:
+      - 8096:8096 # HTTP port
+      - 8920:8920 # HTTPS port
+    devices:
+      - /dev/dri:/dev/dri # VAAPI/NVDEC/NVENC render nodes
+    restart: always
+    networks:
+      - npm_web
+volumes:
+  emby:
+networks:
+  npm_web:
+    external: true

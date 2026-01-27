@@ -1,0 +1,27 @@
+# More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    hostname: pihole
+    ports:
+      # DNS Ports
+      - "53:53/tcp"
+      - "53:53/udp"
+      # HTTP Ports
+      - 8081:80
+    environment:
+      TZ: 'Europe/Madrid'
+      FTLCONF_dns_listeningMode: 'all'
+      PIHOLE_DNS_: "1.1.1.1;1.0.0.1"
+    volumes:
+      - pihole:/etc/pihole
+    restart: always 
+    networks:
+      - npm_web
+volumes:
+  pihole:
+networks:
+  npm_web:
+    external: true
+    

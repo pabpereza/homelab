@@ -1,0 +1,129 @@
+name: Deploy Docker Compose Services
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docker/**'
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'Servicio a desplegar (dejar vacío para todos los modificados)'
+        required: false
+        type: string
+
+jobs:
+  detect-changes:
+    name: Detectar Servicios Modificados
+    runs-on: self-hosted
+    outputs:
+      services: ${{ steps.filter.outputs.changes }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detectar cambios en servicios
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            emby:
+              - 'docker/emby/**'
+            pihole:
+              - 'docker/pihole/**'
+            transmission:
+              - 'docker/transmission/**'
+            n8n:
+              - 'docker/n8n/**'
+            npm:
+              - 'docker/npm/**'
+            homebridge:
+              - 'docker/homebridge/**'
+
+      - name: Crear matriz de despliegue
+        id: set-matrix
+        run: |
+          if [ -n "${{ github.event.inputs.service }}" ]; then
+            # Servicio manual
+            MATRIX='{"service":["${{ github.event.inputs.service }}"]}'
+          else
+            # El output de paths-filter ya es un array JSON: ["pihole","npm"]
+            CHANGES='${{ steps.filter.outputs.changes }}'
+            
+            if [ "$CHANGES" = "[]" ] || [ -z "$CHANGES" ]; then
+              MATRIX='{"service":[]}'
+            else
+              # Construir objeto matriz directamente con el array
+              MATRIX="{\"service\":$CHANGES}"
+            fi
+          fi
+          
+          echo "Changes from filter: $CHANGES"
+          echo "Matrix JSON: $MATRIX"
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Desplegar ${{ matrix.service }}
+    needs: detect-changes
+    if: needs.detect-changes.outputs.matrix != '{"service":[]}'
+    runs-on: self-hosted
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Debug matriz
+        run: |
+          echo "Servicio a desplegar: ${{ matrix.service }}"
+          echo "Matriz completa: ${{ toJson(matrix) }}"
+      
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Validar compose file
+        run: |
+          cd docker/${{ matrix.service }}
+          docker compose config > /dev/null
+          echo "✅ Compose file válido para ${{ matrix.service }}"
+
+      - name: Desplegar en Tower
+        run: |
+          cd docker/${{ matrix.service }}
+          
+          echo "🔄 Desplegando ${{ matrix.service }} en Tower..."
+          
+          # Pull de imágenes actualizadas
+          docker compose pull
+          
+          # Recrear contenedores con nueva configuración
+          docker compose up -d --remove-orphans
+          
+          # Limpiar imágenes antiguas
+          docker image prune -f
+          
+          echo "✅ ${{ matrix.service }} desplegado correctamente"
+
+      - name: Notificar resultado
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Despliegue exitoso de ${{ matrix.service }}"
+          else
+            echo "❌ Fallo en despliegue de ${{ matrix.service }}"
+          fi
+
+  notify:
+    name: Notificar Resumen
+    needs: [detect-changes, deploy]
+    if: always()
+    runs-on: self-hosted
+    steps:
+      - name: Resumen de despliegue
+        run: |
+          echo "## 📦 Resumen de Despliegue" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Servicios procesados:** ${{ needs.detect-changes.outputs.services }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Estado:** ${{ needs.deploy.result }}" >> $GITHUB_STEP_SUMMARY

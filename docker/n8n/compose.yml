@@ -11,6 +11,7 @@ services:
       N8N_HOST: n8n.pabpereza.dev
       N8N_PORT: 5678
       N8N_PROTOCOL: https
+      N8N_PAYLOAD_SIZE_MAX: 512mb
       WEBHOOK_URL: https://n8n.pabpereza.dev
       # Zona horaria
       GENERIC_TIMEZONE: Europe/Madrid

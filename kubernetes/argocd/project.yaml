@@ -6,7 +6,7 @@ metadata:
 spec:
   description: Homelab applications managed via GitOps
   sourceRepos:
-    - https://github.com/pabpereza/homelab
+    - '*'
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc

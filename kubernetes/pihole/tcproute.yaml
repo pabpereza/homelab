@@ -1,0 +1,15 @@
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TCPRoute
+metadata:
+  name: pihole-dns-tcp
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: homelab
+      namespace: gateway
+      sectionName: dns-tcp
+  rules:
+    - backendRefs:
+        - name: pihole
+          port: 53

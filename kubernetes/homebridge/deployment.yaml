@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homebridge
+  labels:
+    app: homebridge
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: homebridge
+  template:
+    metadata:
+      labels:
+        app: homebridge
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: puppet02
+      containers:
+        - name: homebridge
+          image: homebridge/homebridge:latest
+          env:
+            - name: TZ
+              value: Europe/Madrid
+          volumeMounts:
+            - name: config
+              mountPath: /homebridge
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8581
+            initialDelaySeconds: 300
+            periodSeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 5
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: homebridge-config

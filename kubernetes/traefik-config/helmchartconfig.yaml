@@ -1,0 +1,25 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    providers:
+      kubernetesGateway:
+        enabled: true
+    gateway:
+      enabled: true
+    ports:
+      dnstcp:
+        port: 53
+        exposedPort: 53
+        protocol: TCP
+        expose:
+          default: true
+      dnsudp:
+        port: 53
+        exposedPort: 53
+        protocol: UDP
+        expose:
+          default: true

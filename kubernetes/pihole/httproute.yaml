@@ -10,7 +10,13 @@ spec:
   hostnames:
     - pihole.homelab.local
   rules:
-    - matches:
+    - filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: local-only
+      matches:
         - path:
             type: PathPrefix
             value: /

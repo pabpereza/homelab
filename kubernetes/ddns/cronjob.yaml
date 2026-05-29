@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ddns-updater
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: ddns-updater
+              image: curlimages/curl:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  IP=$(curl -sf https://ifconfig.me)
+                  echo "Public IP: ${IP}"
+                  for HOST in ${HOSTNAMES}; do
+                    RESULT=$(curl -sf -u "${OVH_USERNAME}:${OVH_PASSWORD}" \
+                      "https://www.ovh.com/nic/update?system=dyndns&hostname=${HOST}&myip=${IP}")
+                    echo "${HOST} -> ${IP} : ${RESULT}"
+                  done
+              env:
+                - name: OVH_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: ddns-credentials
+                      key: username
+                - name: OVH_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ddns-credentials
+                      key: password
+                - name: HOSTNAMES
+                  valueFrom:
+                    secretKeyRef:
+                      name: ddns-credentials
+                      key: hostnames

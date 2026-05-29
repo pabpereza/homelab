@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: quiz
-          image: ghcr.io/pabpereza/practicar-examenes:latest
+          image: ghcr.io/javiersiguenza/practicar-examenes:latest
           ports:
             - containerPort: 8000
           volumeMounts:

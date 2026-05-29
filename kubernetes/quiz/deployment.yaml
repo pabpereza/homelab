@@ -16,6 +16,8 @@ spec:
       labels:
         app: quiz
     spec:
+      imagePullSecrets:
+        - name: ghcr-credentials
       containers:
         - name: quiz
           image: ghcr.io/javiersiguenza/practicar-examenes:latest

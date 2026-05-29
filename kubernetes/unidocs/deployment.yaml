@@ -14,6 +14,8 @@ spec:
       labels:
         app: unidocs
     spec:
+      imagePullSecrets:
+        - name: ghcr-credentials
       containers:
         - name: unidocs
           image: ghcr.io/pabpereza/unidocs:latest

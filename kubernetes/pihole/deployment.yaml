@@ -5,9 +5,9 @@ metadata:
   labels:
     app: pihole
 spec:
-  replicas: 1
+  replicas: 3
   strategy:
-    type: Recreate
+    type: RollingUpdate
   selector:
     matchLabels:
       app: pihole
@@ -54,5 +54,4 @@ spec:
             periodSeconds: 10
       volumes:
         - name: config
-          persistentVolumeClaim:
-            claimName: pihole-config
+          emptyDir: {}

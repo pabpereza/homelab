@@ -13,7 +13,7 @@ spec:
     path: kubernetes/pihole
   destination:
     server: https://kubernetes.default.svc
-    namespace: pihole
+    namespace: homelab
   syncPolicy:
     automated:
       prune: true

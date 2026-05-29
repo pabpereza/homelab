@@ -13,7 +13,7 @@ spec:
     path: kubernetes/homebridge
   destination:
     server: https://kubernetes.default.svc
-    namespace: homebridge
+    namespace: homelab
   syncPolicy:
     automated:
       prune: true

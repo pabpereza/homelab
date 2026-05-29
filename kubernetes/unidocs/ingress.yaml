@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: unidocs
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - unidocs.pabpereza.dev
+      secretName: unidocs-tls
+  rules:
+    - host: unidocs.pabpereza.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: unidocs
+                port:
+                  number: 80

@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: quiz
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - quiz.pabpereza.dev
+      secretName: quiz-tls
+  rules:
+    - host: quiz.pabpereza.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: quiz
+                port:
+                  number: 8000

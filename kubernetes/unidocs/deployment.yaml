@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unidocs
+  labels:
+    app: unidocs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unidocs
+  template:
+    metadata:
+      labels:
+        app: unidocs
+    spec:
+      containers:
+        - name: unidocs
+          image: ghcr.io/pabpereza/unidocs:latest
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 30

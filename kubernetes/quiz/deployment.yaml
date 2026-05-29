@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quiz
+  labels:
+    app: quiz
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: quiz
+  template:
+    metadata:
+      labels:
+        app: quiz
+    spec:
+      containers:
+        - name: quiz
+          image: ghcr.io/pabpereza/practicar-examenes:latest
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: datos
+              mountPath: /app/datos
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 30
+      volumes:
+        - name: datos
+          persistentVolumeClaim:
+            claimName: quiz-datos

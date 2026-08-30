@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homeassistant
+  labels:
+    app: homeassistant
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: homeassistant
+  template:
+    metadata:
+      labels:
+        app: homeassistant
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: puppet04
+      containers:
+        - name: homeassistant
+          image: ghcr.io/home-assistant/home-assistant:stable
+          env:
+            - name: TZ
+              value: Europe/Madrid
+          volumeMounts:
+            - name: config
+              mountPath: /config
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8123
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: homeassistant-config

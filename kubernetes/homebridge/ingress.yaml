@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homebridge
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.middlewares: homelab-local-only@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - homebridge.pabpereza.dev
+      secretName: homebridge-tls
+  rules:
+    - host: homebridge.pabpereza.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: homebridge
+                port:
+                  number: 8581

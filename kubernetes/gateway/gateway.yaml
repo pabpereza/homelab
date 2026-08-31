@@ -3,8 +3,6 @@ kind: Gateway
 metadata:
   name: homelab
   namespace: gateway
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   gatewayClassName: traefik
   listeners:
@@ -14,20 +12,6 @@ spec:
     - name: http
       protocol: HTTP
       port: 8000
-      allowedRoutes:
-        namespaces:
-          from: All
-        kinds:
-          - kind: HTTPRoute
-    - name: https-homebridge
-      protocol: HTTPS
-      port: 8443
-      hostname: homebridge.pabpereza.dev
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: homebridge-tls
-            kind: Secret
       allowedRoutes:
         namespaces:
           from: All

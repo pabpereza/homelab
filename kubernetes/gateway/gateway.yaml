@@ -17,6 +17,8 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+        kinds:
+          - kind: HTTPRoute
     - name: https-homebridge
       protocol: HTTPS
       port: 8443
@@ -29,6 +31,8 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+        kinds:
+          - kind: HTTPRoute
     - name: dns-tcp
       protocol: TCP
       port: 53

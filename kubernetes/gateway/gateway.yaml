@@ -8,15 +8,18 @@ metadata:
 spec:
   gatewayClassName: traefik
   listeners:
+    # Traefik matches Gateway listener ports against its entryPoints' literal
+    # listen address (web=:8000, websecure=:8443), not the Service's exposed
+    # 80/443 - the Service still maps 80/443 -> these ports for real clients.
     - name: http
       protocol: HTTP
-      port: 80
+      port: 8000
       allowedRoutes:
         namespaces:
           from: All
     - name: https-homebridge
       protocol: HTTPS
-      port: 443
+      port: 8443
       hostname: homebridge.pabpereza.dev
       tls:
         mode: Terminate

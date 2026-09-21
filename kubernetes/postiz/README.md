@@ -26,6 +26,7 @@ kubectl -n postiz create secret generic postiz-providers \
 kubectl -n postiz rollout restart deployment/postiz
 ```
 
-## After the first login
+## Registration
 
-Create your account, then set `DISABLE_REGISTRATION` to `"true"` in `deployment.yaml`.
+Registration is disabled (`DISABLE_REGISTRATION: "true"` in `deployment.yaml`). To add
+another account, temporarily set it to `"false"`, register, then revert.

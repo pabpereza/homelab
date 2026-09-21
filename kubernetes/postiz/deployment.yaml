@@ -54,9 +54,9 @@ spec:
               value: temporal:7233
             - name: IS_GENERAL
               value: "true"
-            # Public instance: set to "true" once your account is created.
+            # Public instance: only the owner account exists, no new sign-ups.
             - name: DISABLE_REGISTRATION
-              value: "false"
+              value: "true"
             - name: RUN_CRON
               value: "true"
             - name: STORAGE_PROVIDER

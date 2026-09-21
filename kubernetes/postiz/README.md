@@ -2,8 +2,9 @@
 
 Social media scheduler (https://postiz.com), public at https://postiz.pabpereza.dev.
 
-Components (namespace `postiz`): Postiz app, PostgreSQL (shared with Temporal), Redis and
-Temporal. The official Helm chart is not used: it predates the Temporal requirement
+Components (namespace `postiz`): Postiz app, PostgreSQL (shared with Temporal), Redis,
+Temporal and Elasticsearch (Temporal visibility: SQL visibility caps Text search attributes
+at 3 and Postiz needs more). The official Helm chart is not used: it predates the Temporal requirement
 (Postiz >= v2.12), depends on Bitnami images and forces secrets into Helm values.
 
 ## Secrets (manual, never in git)

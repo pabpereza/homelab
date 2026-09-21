@@ -1,5 +1,5 @@
-# Temporal is required by Postiz since v2.12. Same image/version as the official
-# postiz-docker-compose, but with SQL visibility instead of Elasticsearch to save RAM.
+# Temporal is required by Postiz since v2.12. Same image/version and setup as the
+# official postiz-docker-compose (PostgreSQL persistence, Elasticsearch visibility).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,7 +39,11 @@ spec:
                   name: postiz-secrets
                   key: postgres-password
             - name: ENABLE_ES
-              value: "false"
+              value: "true"
+            - name: ES_SEEDS
+              value: elasticsearch
+            - name: ES_VERSION
+              value: v7
             - name: DYNAMIC_CONFIG_FILE_PATH
               value: config/dynamicconfig/development-sql.yaml
           volumeMounts:

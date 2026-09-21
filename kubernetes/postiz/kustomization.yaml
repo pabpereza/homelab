@@ -5,6 +5,7 @@ resources:
   - pvc.yaml
   - postgres.yaml
   - redis.yaml
+  - elasticsearch.yaml
   - temporal.yaml
   - deployment.yaml
   - service.yaml

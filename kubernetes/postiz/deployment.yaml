@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postiz
+  labels:
+    app: postiz
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: postiz
+  template:
+    metadata:
+      labels:
+        app: postiz
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: postiz
+          image: ghcr.io/gitroomhq/postiz-app:v2.23.0
+          ports:
+            - containerPort: 5000
+          env:
+            - name: MAIN_URL
+              value: https://postiz.pabpereza.dev
+            - name: FRONTEND_URL
+              value: https://postiz.pabpereza.dev
+            - name: NEXT_PUBLIC_BACKEND_URL
+              value: https://postiz.pabpereza.dev/api
+            - name: BACKEND_INTERNAL_URL
+              value: http://localhost:3000
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postiz-secrets
+                  key: postgres-password
+            - name: DATABASE_URL
+              value: postgresql://postiz:$(POSTGRES_PASSWORD)@postgres:5432/postiz
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: postiz-secrets
+                  key: jwt-secret
+            - name: REDIS_URL
+              value: redis://redis:6379
+            - name: TEMPORAL_ADDRESS
+              value: temporal:7233
+            - name: IS_GENERAL
+              value: "true"
+            # Public instance: set to "true" once your account is created.
+            - name: DISABLE_REGISTRATION
+              value: "false"
+            - name: RUN_CRON
+              value: "true"
+            - name: STORAGE_PROVIDER
+              value: local
+            - name: UPLOAD_DIRECTORY
+              value: /uploads
+            - name: NEXT_PUBLIC_UPLOAD_DIRECTORY
+              value: /uploads
+            - name: NX_ADD_PLUGINS
+              value: "false"
+          # Social network API keys (X_API_KEY, LINKEDIN_CLIENT_ID, ...), created manually.
+          envFrom:
+            - secretRef:
+                name: postiz-providers
+                optional: true
+          volumeMounts:
+            - name: uploads
+              mountPath: /uploads
+            - name: config
+              mountPath: /config
+          startupProbe:
+            httpGet:
+              path: /
+              port: 5000
+            periodSeconds: 10
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            periodSeconds: 30
+            timeoutSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: postiz-uploads
+        - name: config
+          persistentVolumeClaim:
+            claimName: postiz-config

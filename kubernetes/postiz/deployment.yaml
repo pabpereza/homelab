@@ -17,6 +17,11 @@ spec:
         app: postiz
     spec:
       enableServiceLinks: false
+      # The backend does not retry Temporal on startup: wait until it accepts connections.
+      initContainers:
+        - name: wait-for-temporal
+          image: busybox:1.36
+          command: ["sh", "-c", "until nc -z temporal 7233; do echo waiting for temporal; sleep 5; done"]
       containers:
         - name: postiz
           image: ghcr.io/gitroomhq/postiz-app:v2.23.0
@@ -72,16 +77,15 @@ spec:
               mountPath: /uploads
             - name: config
               mountPath: /config
+          # Probe the backend (3000): the frontend on 5000 stays up even if the backend died.
           startupProbe:
-            httpGet:
-              path: /
-              port: 5000
+            tcpSocket:
+              port: 3000
             periodSeconds: 10
             failureThreshold: 60
           livenessProbe:
-            httpGet:
-              path: /
-              port: 5000
+            tcpSocket:
+              port: 3000
             periodSeconds: 30
             timeoutSeconds: 10
           resources:

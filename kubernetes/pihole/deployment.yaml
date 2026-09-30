@@ -26,6 +26,11 @@ spec:
               value: "all"
             - name: FTLCONF_dns_upstreams
               value: "1.1.1.1;1.0.0.1"
+            # Split-horizon DNS: inside the LAN, public hostnames served by the cluster resolve
+            # straight to Traefik (the router doesn't do NAT loopback). Same list as coredns-custom.
+            - name: FTLCONF_dns_hosts
+              value: >-
+                192.168.2.240 english-coach.pabpereza.dev;192.168.2.240 postiz.pabpereza.dev;192.168.2.240 quiz.pabpereza.dev;192.168.2.240 unidocs.pabpereza.dev;192.168.2.240 homebridge.pabpereza.dev
           ports:
             - name: dns-tcp
               containerPort: 53

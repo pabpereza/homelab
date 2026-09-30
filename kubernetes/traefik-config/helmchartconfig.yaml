@@ -15,6 +15,15 @@ spec:
       spec:
         externalTrafficPolicy: Local
     ports:
+      # Everything is served over HTTPS. Port 80 stays open only to redirect and for Let's
+      # Encrypt HTTP-01 challenges (Let's Encrypt follows the redirect to HTTPS).
+      web:
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
       dnstcp:
         port: 53
         exposedPort: 53

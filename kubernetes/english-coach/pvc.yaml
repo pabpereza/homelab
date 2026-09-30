@@ -1,0 +1,12 @@
+# Working copy of the english-coach git repository (the data lives in git, this is only a clone).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: english-coach-repo
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi

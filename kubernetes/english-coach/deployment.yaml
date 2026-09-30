@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: english-coach
+  labels:
+    app: english-coach
+spec:
+  # Single replica: the app is the only git writer and serializes commits in memory.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: english-coach
+  template:
+    metadata:
+      labels:
+        app: english-coach
+    spec:
+      imagePullSecrets:
+        - name: ghcr-credentials
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: english-coach
+          image: ghcr.io/pabpereza/english-coach:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8787
+          env:
+            - name: COACH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: english-coach-secrets
+                  key: coach-secret
+            # Subdirectory owned by the app user: the volume root is owned by root and git refuses it.
+            - name: REPO_DIR
+              value: /repo/english-coach
+            - name: GIT_REMOTE_URL
+              value: git@github.com:pabpereza/english-coach.git
+            - name: GIT_BRANCH
+              value: main
+            - name: GIT_SSH_KEY_FILE
+              value: /run/secrets/english-coach/deploy_key
+            - name: GIT_AUTHOR_NAME
+              value: English Coach
+            - name: GIT_AUTHOR_EMAIL
+              value: english-coach@users.noreply.github.com
+            - name: SYNC_INTERVAL_SECONDS
+              value: "120"
+            - name: TZ
+              value: Europe/Madrid
+          volumeMounts:
+            - name: repo
+              mountPath: /repo
+            - name: deploy-key
+              mountPath: /run/secrets/english-coach
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8787
+            periodSeconds: 5
+            failureThreshold: 24
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8787
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: repo
+          persistentVolumeClaim:
+            claimName: english-coach-repo
+        - name: deploy-key
+          secret:
+            secretName: english-coach-secrets
+            defaultMode: 0440
+            items:
+              - key: deploy-key
+                path: deploy_key

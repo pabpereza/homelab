@@ -30,7 +30,7 @@ spec:
             # straight to Traefik (the router doesn't do NAT loopback). Same list as coredns-custom.
             - name: FTLCONF_dns_hosts
               value: >-
-                192.168.2.240 english-coach.pabpereza.dev;192.168.2.240 postiz.pabpereza.dev;192.168.2.240 quiz.pabpereza.dev;192.168.2.240 unidocs.pabpereza.dev;192.168.2.240 homebridge.pabpereza.dev
+                192.168.2.240 postiz.pabpereza.dev;192.168.2.240 quiz.pabpereza.dev;192.168.2.240 unidocs.pabpereza.dev;192.168.2.240 homebridge.pabpereza.dev
           ports:
             - name: dns-tcp
               containerPort: 53

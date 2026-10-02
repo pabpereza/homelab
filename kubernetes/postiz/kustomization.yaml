@@ -10,6 +10,8 @@ resources:
   - deployment.yaml
   - service.yaml
   - ingress.yaml
+  - ingress-mcp.yaml
+  - middleware.yaml
 configMapGenerator:
   - name: temporal-dynamicconfig
     files:

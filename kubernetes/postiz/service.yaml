@@ -6,5 +6,10 @@ spec:
   selector:
     app: postiz
   ports:
-    - port: 80
+    - name: http
+      port: 80
       targetPort: 5000
+    # Backend directly, bypassing the internal nginx (see ingress-mcp.yaml).
+    - name: backend
+      port: 3000
+      targetPort: 3000

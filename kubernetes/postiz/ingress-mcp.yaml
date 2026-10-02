@@ -1,0 +1,39 @@
+# MCP endpoints go straight to the backend: the nginx inside the image buffers the
+# GET text/event-stream response, so MCP clients (claude.ai connectors) time out.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: postiz-mcp
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: postiz-strip-api@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - postiz.pabpereza.dev
+      secretName: postiz-tls
+  rules:
+    - host: postiz.pabpereza.dev
+      http:
+        paths:
+          - path: /api/mcp
+            pathType: Prefix
+            backend:
+              service:
+                name: postiz
+                port:
+                  name: backend
+          - path: /api/sse
+            pathType: Prefix
+            backend:
+              service:
+                name: postiz
+                port:
+                  name: backend
+          - path: /api/message
+            pathType: Prefix
+            backend:
+              service:
+                name: postiz
+                port:
+                  name: backend

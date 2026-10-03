@@ -67,6 +67,9 @@ spec:
               value: /uploads
             - name: NX_ADD_PLUGINS
               value: "false"
+            # Analytics spend the small X API read quota: keep it for publishing.
+            - name: DISABLE_X_ANALYTICS
+              value: "true"
           # Social network API keys (X_API_KEY, LINKEDIN_CLIENT_ID, ...), created manually.
           envFrom:
             - secretRef:

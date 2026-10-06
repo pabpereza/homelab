@@ -67,6 +67,10 @@ spec:
               value: /uploads
             - name: NX_ADD_PLUGINS
               value: "false"
+            # Media is fetched from the public URL, which resolves to a private IP inside the
+            # LAN (split DNS) and the SSRF guard blocks it. Single-user instance, low risk.
+            - name: DISABLE_SSRF_PROTECTION
+              value: "true"
             # Analytics spend the small X API read quota: keep it for publishing.
             - name: DISABLE_X_ANALYTICS
               value: "true"

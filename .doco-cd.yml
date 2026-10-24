@@ -1,0 +1,13 @@
+# Servicios de docker/ que doco-cd despliega en la torre (ver docker/doco-cd).
+# force_image_pull: en cada poll compara el digest del registro y recrea el servicio si la imagen ha cambiado.
+name: emby
+working_dir: docker/emby
+force_image_pull: true
+---
+name: homebridge
+working_dir: docker/homebridge
+force_image_pull: true
+---
+name: transmission
+working_dir: docker/transmission
+force_image_pull: true

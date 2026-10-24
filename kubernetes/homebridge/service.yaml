@@ -1,12 +1,27 @@
+# Homebridge corre en Docker en la torre (docker/homebridge). Service sin selector + EndpointSlice
+# para que homebridge.pabpereza.dev siga funcionando a través de Traefik.
 apiVersion: v1
 kind: Service
 metadata:
   name: homebridge
 spec:
-  selector:
-    app: homebridge
   ports:
     - name: web
       port: 8581
       targetPort: 8581
       protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: homebridge-tower
+  labels:
+    kubernetes.io/service-name: homebridge
+addressType: IPv4
+ports:
+  - name: web
+    port: 8581
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 192.168.2.100

@@ -18,10 +18,5 @@ services:
     devices:
       - /dev/dri:/dev/dri # VAAPI/NVDEC/NVENC render nodes
     restart: always
-    networks:
-      - npm_web
 volumes:
   emby:
-networks:
-  npm_web:
-    external: true

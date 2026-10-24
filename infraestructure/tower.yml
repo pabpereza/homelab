@@ -1,0 +1,65 @@
+---
+# Prepara la torre (Arch/Omarchy) para los servicios de docker/ e instala doco-cd,
+# que a partir de ahí los despliega solo desde git (ver .doco-cd.yml).
+# La torre pide contraseña de sudo: ejecutar con -K.
+- name: Torre
+  hosts: tower
+  become: true
+  vars:
+    doco_cd_dir: /opt/doco-cd
+  tasks:
+    # Omarchy deja Docker activado solo por socket: sin esto los contenedores no arrancan tras reiniciar
+    - name: Arrancar Docker al inicio
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Directorio de media (Emby y Transmission)
+      ansible.builtin.file:
+        path: /home/pabpereza/media
+        state: directory
+        owner: pabpereza
+        group: pabpereza
+        mode: "0755"
+
+    - name: Directorio de doco-cd
+      ansible.builtin.file:
+        path: "{{ doco_cd_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Compose de doco-cd
+      ansible.builtin.copy:
+        src: ../docker/doco-cd/compose.yml
+        dest: "{{ doco_cd_dir }}/compose.yml"
+        mode: "0644"
+      register: doco_cd_compose
+
+    - name: Levantar doco-cd
+      ansible.builtin.command: docker compose up -d
+      args:
+        chdir: "{{ doco_cd_dir }}"
+      when: doco_cd_compose.changed
+
+    # Homebridge usa network_mode: host, así que (a diferencia de los puertos publicados por Docker) pasa por ufw
+    - name: Comprobar si ufw está activo
+      ansible.builtin.command: ufw status
+      register: ufw_status
+      changed_when: false
+      failed_when: false
+
+    - name: Abrir los puertos de Homebridge en ufw
+      community.general.ufw:
+        rule: allow
+        from_ip: 192.168.0.0/16
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+      loop:
+        - { port: "8581", proto: tcp }    # UI
+        # Bridge HomeKit y child bridges: bridge.port y _bridge.port en config.json
+        - { port: "51168", proto: tcp }
+        - { port: "59182", proto: tcp }
+        - { port: "31477", proto: tcp }
+        - { port: "5353", proto: udp }    # mDNS
+      when: "'Status: active' in ufw_status.stdout"

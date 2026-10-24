@@ -42,14 +42,14 @@
         chdir: "{{ doco_cd_dir }}"
       when: doco_cd_compose.changed
 
-    # Homebridge usa network_mode: host, así que (a diferencia de los puertos publicados por Docker) pasa por ufw
+    # Homebridge y Home Assistant usan network_mode: host, así que (a diferencia de los puertos publicados por Docker) pasan por ufw
     - name: Comprobar si ufw está activo
       ansible.builtin.command: ufw status
       register: ufw_status
       changed_when: false
       failed_when: false
 
-    - name: Abrir los puertos de Homebridge en ufw
+    - name: Abrir los puertos de Homebridge y Home Assistant en ufw
       community.general.ufw:
         rule: allow
         from_ip: 192.168.0.0/16
@@ -61,5 +61,6 @@
         - { port: "51168", proto: tcp }
         - { port: "59182", proto: tcp }
         - { port: "31477", proto: tcp }
+        - { port: "8123", proto: tcp }    # Home Assistant
         - { port: "5353", proto: udp }    # mDNS
       when: "'Status: active' in ufw_status.stdout"

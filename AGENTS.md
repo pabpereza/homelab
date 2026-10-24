@@ -17,6 +17,7 @@ Services running in Docker are located in the `docker/` folder. Each subdirector
 
 Current services include:
 - emby
+- homeassistant
 - homebridge
 - transmission
 - doco-cd (deploys the others)

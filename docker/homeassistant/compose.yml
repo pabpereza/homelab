@@ -1,0 +1,13 @@
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    restart: always
+    # Red del host para el descubrimiento (mDNS/SSDP) de dispositivos de la LAN
+    network_mode: host
+    environment:
+      - TZ=Europe/Madrid
+    volumes:
+      - config:/config
+volumes:
+  config:

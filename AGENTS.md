@@ -26,7 +26,7 @@ Current services include:
 
 The services run on the tower and are deployed by [doco-cd](https://doco.cd), with no CI runner on the host. doco-cd polls this repo (`main`) and applies the stacks listed in `.doco-cd.yml`. With `force_image_pull`, it also redeploys a service when its image tag points to a new digest in the registry.
 
-doco-cd itself is installed by `infraestructure/tower.yml`, not by doco-cd. To add a service, create `docker/<service>/compose.yml` and add an entry to `.doco-cd.yml`.
+doco-cd itself is installed by `infraestructure/castle.yml`, not by doco-cd. To add a service, create `docker/<service>/compose.yml` and add an entry to `.doco-cd.yml`.
 
 ## Kubernetes Cluster
 
@@ -41,7 +41,7 @@ The `infraestructure/` folder contains everything necessary to manage the infras
 -   `ansible.cfg`: Ansible configuration file.
 -   `inventory/hosts`: Ansible inventory with the definition of the hosts that compose the infrastructure.
 -   `update.yml`: Ansible playbook for updating the systems.
--   `tower.yml`: Prepares the tower (Docker on boot, Tailscale, media dir, ufw) and installs doco-cd. Run with `-K`.
+-   `castle.yml`: Prepares the tower (host `castle`: Docker on boot, Tailscale exit node and subnet routes, media dir, ufw) and installs doco-cd. Run with `-K`.
 -   `k3s/`: Playbooks for the deployment and configuration of a k3s cluster.
     -   `main.yml`: Main playbook that orchestrates the installation.
     -   `master.yml`: Playbook for configuring master nodes.

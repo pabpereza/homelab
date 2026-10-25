@@ -3,7 +3,7 @@
 # que a partir de ahí los despliega solo desde git (ver .doco-cd.yml).
 # La torre pide contraseña de sudo: ejecutar con -K.
 - name: Torre
-  hosts: tower
+  hosts: castle
   become: true
   vars:
     doco_cd_dir: /opt/doco-cd
@@ -40,6 +40,21 @@
         name: tailscaled
         enabled: true
         state: started
+
+    # Nodo de salida + rutas a la LAN. No cambia nada hasta que un cliente elige la torre como exit node
+    # o activa "usar subredes" en la app. Exit node y rutas se aprueban una vez en la consola de Tailscale.
+    # Solo IPv4: el reenvío IPv6 se deja desactivado porque Matter/Thread lo necesita así.
+    - name: Reenvío IPv4 para Tailscale
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        sysctl_file: /etc/sysctl.d/90-tailscale.conf
+
+    - name: Anunciar exit node y subredes de casa
+      ansible.builtin.command: >-
+        tailscale set --advertise-exit-node
+        --advertise-routes=192.168.1.0/24,192.168.2.0/24
+      changed_when: false
 
     - name: Directorio de media (Emby y Transmission)
       ansible.builtin.file:
@@ -97,4 +112,11 @@
         rule: allow
         direction: in
         interface: tailscale0
+      when: "'Status: active' in ufw_status.stdout"
+
+    - name: Permitir que el tráfico de Tailscale salga a la LAN e Internet (exit node y subredes)
+      community.general.ufw:
+        rule: allow
+        route: true
+        interface_in: tailscale0
       when: "'Status: active' in ufw_status.stdout"

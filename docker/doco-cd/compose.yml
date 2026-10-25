@@ -1,5 +1,5 @@
 # GitOps para Docker Compose en la torre: consulta los repos y despliega sus .doco-cd.yml.
-# No lo despliega doco-cd a sí mismo; lo instala infraestructure/tower.yml.
+# No lo despliega doco-cd a sí mismo; lo instala infraestructure/castle.yml.
 # More info at https://doco.cd/latest/
 services:
   doco-cd:

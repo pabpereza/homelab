@@ -1,7 +1,8 @@
 # Configuración de Hosts para Homelab
 
 [servers]
-tower ansible_host=192.168.2.100
+# La torre; en Tailscale también se llama castle (tower es el móvil y palace el Mac)
+castle ansible_host=192.168.2.100
 
 [masters]
 rpi0 ansible_host=192.168.2.0

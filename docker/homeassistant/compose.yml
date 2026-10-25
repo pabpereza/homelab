@@ -14,5 +14,23 @@ services:
     volumes:
       - config:/config
       - /run/dbus:/run/dbus:ro
+
+  # Controlador Matter (sustituye a python-matter-server). Home Assistant lo usa en ws://localhost:5580/ws
+  # More info at https://github.com/matter-js/matterjs-server/blob/main/docs/docker.md
+  matter-server:
+    container_name: matter-server
+    image: ghcr.io/matter-js/matterjs-server:stable
+    restart: always
+    read_only: true
+    # Matter usa multicast IPv6 en la LAN y llega a los dispositivos Thread vía los border routers (HomePod/Apple TV)
+    network_mode: host
+    environment:
+      - TZ=Europe/Madrid
+      - PRIMARY_INTERFACE=eno1
+      # El WebSocket solo lo usa Home Assistant en la misma máquina
+      - LISTEN_ADDRESS=127.0.0.1
+    volumes:
+      - matter:/data
 volumes:
   config:
+  matter:

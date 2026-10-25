@@ -21,6 +21,13 @@
         enabled: true
         state: started
 
+    # ufw es stateful: con el valor por defecto (120 s) se pierden los reportes de los dispositivos Matter a pilas
+    - name: Timeout de conntrack UDP para Matter
+      ansible.posix.sysctl:
+        name: net.netfilter.nf_conntrack_udp_timeout_stream
+        value: "3600"
+        sysctl_file: /etc/sysctl.d/90-matter.conf
+
     - name: Directorio de media (Emby y Transmission)
       ansible.builtin.file:
         path: /home/pabpereza/media

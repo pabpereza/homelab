@@ -28,6 +28,19 @@
         value: "3600"
         sysctl_file: /etc/sysctl.d/90-matter.conf
 
+    # Acceso remoto (sobre todo a Home Assistant) sin abrir puertos en el router.
+    # El login es manual la primera vez: sudo tailscale up
+    - name: Instalar Tailscale
+      community.general.pacman:
+        name: tailscale
+        state: present
+
+    - name: Arrancar Tailscale al inicio
+      ansible.builtin.systemd:
+        name: tailscaled
+        enabled: true
+        state: started
+
     - name: Directorio de media (Emby y Transmission)
       ansible.builtin.file:
         path: /home/pabpereza/media
@@ -76,4 +89,12 @@
         - { port: "31477", proto: tcp }
         - { port: "8123", proto: tcp }    # Home Assistant
         - { port: "5353", proto: udp }    # mDNS
+      when: "'Status: active' in ufw_status.stdout"
+
+    # Lo que llega por la tailnet ya está autenticado; quién accede se limita con las ACLs de Tailscale
+    - name: Permitir el tráfico de Tailscale en ufw
+      community.general.ufw:
+        rule: allow
+        direction: in
+        interface: tailscale0
       when: "'Status: active' in ufw_status.stdout"

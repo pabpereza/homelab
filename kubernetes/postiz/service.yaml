@@ -1,10 +1,10 @@
+# Postiz runs in Docker on the tower (docker/postiz). Selectorless Service + EndpointSlice so
+# the Ingresses keep routing postiz.pabpereza.dev (frontend and MCP endpoints) through Traefik.
 apiVersion: v1
 kind: Service
 metadata:
   name: postiz
 spec:
-  selector:
-    app: postiz
   ports:
     - name: http
       port: 80
@@ -13,3 +13,21 @@ spec:
     - name: backend
       port: 3000
       targetPort: 3000
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: postiz-tower
+  labels:
+    kubernetes.io/service-name: postiz
+addressType: IPv4
+ports:
+  - name: http
+    port: 5000
+    protocol: TCP
+  - name: backend
+    port: 3000
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 192.168.2.100

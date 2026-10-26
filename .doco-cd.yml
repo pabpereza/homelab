@@ -15,3 +15,7 @@ force_image_pull: true
 name: homeassistant
 working_dir: docker/homeassistant
 force_image_pull: true
+---
+name: postiz
+working_dir: docker/postiz
+force_image_pull: true

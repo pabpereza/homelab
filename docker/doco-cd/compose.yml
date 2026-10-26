@@ -16,6 +16,8 @@ services:
           interval: 180
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      # Secretos de los servicios (env_file con ruta absoluta), fuera de git
+      - /opt/secrets:/opt/secrets:ro
       - data:/data
     cap_drop:
       - ALL

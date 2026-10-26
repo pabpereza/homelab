@@ -19,6 +19,7 @@ Current services include:
 - emby
 - homeassistant
 - homebridge
+- postiz
 - transmission
 - doco-cd (deploys the others)
 
@@ -26,7 +27,7 @@ Current services include:
 
 The services run on the tower and are deployed by [doco-cd](https://doco.cd), with no CI runner on the host. doco-cd polls this repo (`main`) and applies the stacks listed in `.doco-cd.yml`. With `force_image_pull`, it also redeploys a service when its image tag points to a new digest in the registry.
 
-doco-cd itself is installed by `infraestructure/castle.yml`, not by doco-cd. To add a service, create `docker/<service>/compose.yml` and add an entry to `.doco-cd.yml`.
+doco-cd itself is installed by `infraestructure/castle.yml`, not by doco-cd. To add a service, create `docker/<service>/compose.yml` and add an entry to `.doco-cd.yml`. Secrets are never committed: services read them with `env_file` from `/opt/secrets/<service>/` on the tower, which `castle.yml` creates and doco-cd mounts read-only.
 
 ## Kubernetes Cluster
 

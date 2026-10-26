@@ -70,6 +70,18 @@
         state: directory
         mode: "0755"
 
+    # Secretos de los servicios (env_file en los compose); doco-cd los monta en solo lectura
+    - name: Directorios de secretos
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+      loop:
+        - /opt/secrets
+        - /opt/secrets/postiz
+
     - name: Compose de doco-cd
       ansible.builtin.copy:
         src: ../docker/doco-cd/compose.yml

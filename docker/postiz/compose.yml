@@ -1,0 +1,130 @@
+# Postiz (https://postiz.com) with PostgreSQL (shared with Temporal), Redis, Temporal and
+# Elasticsearch (Temporal visibility: SQL visibility caps Text search attributes at 3).
+#
+# Secrets live on the host, outside git, and are mounted into doco-cd (see infraestructure/castle.yml):
+#   /opt/secrets/postiz/db.env   POSTGRES_PASSWORD, POSTGRES_PWD
+#   /opt/secrets/postiz/app.env  DATABASE_URL, JWT_SECRET and the social network keys
+x-db-env: &db_env /opt/secrets/postiz/db.env
+
+services:
+  postiz:
+    container_name: postiz
+    image: ghcr.io/gitroomhq/postiz-app:v2.23.0
+    restart: always
+    env_file: /opt/secrets/postiz/app.env
+    environment:
+      MAIN_URL: https://postiz.pabpereza.dev
+      FRONTEND_URL: https://postiz.pabpereza.dev
+      NEXT_PUBLIC_BACKEND_URL: https://postiz.pabpereza.dev/api
+      BACKEND_INTERNAL_URL: http://localhost:3000
+      REDIS_URL: redis://redis:6379
+      TEMPORAL_ADDRESS: temporal:7233
+      IS_GENERAL: "true"
+      # Public instance: only the owner account exists, no new sign-ups.
+      DISABLE_REGISTRATION: "true"
+      RUN_CRON: "true"
+      STORAGE_PROVIDER: local
+      UPLOAD_DIRECTORY: /uploads
+      NEXT_PUBLIC_UPLOAD_DIRECTORY: /uploads
+      NX_ADD_PLUGINS: "false"
+      # Media is fetched from the public URL, which resolves to a private IP inside the
+      # LAN (split DNS) and the SSRF guard blocks it. Single-user instance, low risk.
+      DISABLE_SSRF_PROTECTION: "true"
+      # Analytics spend the small X API read quota: keep it for publishing.
+      DISABLE_X_ANALYTICS: "true"
+    ports:
+      - "5000:5000"   # frontend (internal nginx)
+      - "3000:3000"   # backend, for the MCP endpoints that nginx buffers
+    volumes:
+      - uploads:/uploads
+      - config:/config
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      # The backend does not retry Temporal on startup
+      temporal:
+        condition: service_healthy
+
+  postgres:
+    container_name: postiz-postgres
+    image: postgres:16-alpine
+    restart: always
+    env_file: *db_env
+    environment:
+      POSTGRES_USER: postiz
+      POSTGRES_DB: postiz
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postiz", "-d", "postiz"]
+      interval: 10s
+      retries: 10
+
+  redis:
+    container_name: postiz-redis
+    image: redis:7.2-alpine
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 10
+
+  temporal:
+    container_name: postiz-temporal
+    image: temporalio/auto-setup:1.28.1
+    restart: always
+    env_file: *db_env
+    environment:
+      DB: postgres12
+      DB_PORT: "5432"
+      POSTGRES_SEEDS: postgres
+      POSTGRES_USER: postiz
+      ENABLE_ES: "true"
+      ES_SEEDS: elasticsearch
+      ES_VERSION: v7
+      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
+    volumes:
+      - ./temporal-dynamicconfig.yaml:/etc/temporal/config/dynamicconfig/development-sql.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z $$(hostname -i) 7233"]
+      interval: 10s
+      start_period: 60s
+      retries: 30
+
+  elasticsearch:
+    container_name: postiz-elasticsearch
+    image: elasticsearch:7.17.27
+    restart: always
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: -Xms256m -Xmx256m
+      xpack.security.enabled: "false"
+      cluster.routing.allocation.disk.threshold_enabled: "true"
+      cluster.routing.allocation.disk.watermark.low: 512mb
+      cluster.routing.allocation.disk.watermark.high: 256mb
+      cluster.routing.allocation.disk.watermark.flood_stage: 128mb
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s'"]
+      interval: 10s
+      start_period: 30s
+      retries: 30
+
+volumes:
+  postgres-data:
+  elasticsearch-data:
+  redis-data:
+  uploads:
+  config:

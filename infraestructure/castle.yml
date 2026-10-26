@@ -81,6 +81,7 @@
       loop:
         - /opt/secrets
         - /opt/secrets/postiz
+        - /opt/secrets/ddns
 
     - name: Compose de doco-cd
       ansible.builtin.copy:

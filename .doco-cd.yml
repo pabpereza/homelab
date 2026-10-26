@@ -23,3 +23,7 @@ force_image_pull: true
 name: npm
 working_dir: docker/npm
 force_image_pull: true
+---
+name: ddns
+working_dir: docker/ddns
+force_image_pull: true

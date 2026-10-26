@@ -1,0 +1,27 @@
+# Dynamic DNS for OVH DynHost: every 5 minutes, points the hostnames to the current public IP.
+# Credentials outside git, in /opt/secrets/ddns/ddns.env: OVH_USERNAME, OVH_PASSWORD and
+# HOSTNAMES (space-separated).
+services:
+  ddns:
+    container_name: ddns
+    image: curlimages/curl:8.17.0
+    restart: always
+    env_file: /opt/secrets/ddns/ddns.env
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          IP=$$(curl -sf https://ifconfig.me)
+          if [ -n "$$IP" ] && [ "$$IP" != "$$LAST_IP" ]; then
+            OK=1
+            for HOST in $${HOSTNAMES}; do
+              RESULT=$$(curl -sf -u "$${OVH_USERNAME}:$${OVH_PASSWORD}" \
+                "https://www.ovh.com/nic/update?system=dyndns&hostname=$${HOST}&myip=$${IP}")
+              echo "$$(date -Iseconds) $${HOST} -> $${IP} : $${RESULT:-error}"
+              case "$$RESULT" in good*|nochg*) ;; *) OK=0 ;; esac
+            done
+            # Si algún host falla, se reintenta en la siguiente vuelta
+            [ "$$OK" = 1 ] && LAST_IP=$$IP
+          fi
+          sleep 300
+        done

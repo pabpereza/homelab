@@ -16,6 +16,7 @@ The repository is organized as follows:
 Services running in Docker are located in the `docker/` folder. Each subdirectory corresponds to a service and contains a `compose.yml` file for deployment with Docker Compose.
 
 Current services include:
+- ddns (OVH DynHost updater)
 - emby
 - homeassistant
 - homebridge

@@ -19,6 +19,7 @@ Current services include:
 - emby
 - homeassistant
 - homebridge
+- npm (Nginx Proxy Manager, public entry point on 80/443)
 - postiz
 - transmission
 - doco-cd (deploys the others)

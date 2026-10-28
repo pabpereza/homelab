@@ -72,12 +72,32 @@
         --advertise-routes=192.168.1.0/24,192.168.2.0/24
       changed_when: false
 
-    # Escritorio remoto: Sunshine (servidor) + Moonlight (cliente). Captura el Hyprland real por KMS
-    # (el paquete ya da cap_sys_admin al binario) y codifica con NVENC. Solo LAN y Tailscale.
-    - name: Instalar Sunshine
-      community.general.pacman:
-        name: sunshine
-        state: present
+    # Escritorio remoto: Sunshine (servidor) + Moonlight (cliente). Captura el Hyprland real por
+    # wlroots screencopy y codifica con NVENC. Solo LAN y Tailscale.
+    # sunshine-bin (AUR, paquete oficial de LizardByte) y no el del repo de Omarchy: el de Omarchy
+    # (2026.516) no puede usar NVENC con NVIDIA + Wayland ("Couldn't scale frame", LizardByte/Sunshine#5309).
+    - name: Instalar sunshine-bin en lugar del sunshine de Omarchy
+      become: false
+      ansible.builtin.shell: |
+        pacman -Q sunshine-bin >/dev/null 2>&1 && exit 0
+        pacman -Q sunshine >/dev/null 2>&1 && sudo pacman -Rdd --noconfirm sunshine
+        yay -S --noconfirm --needed sunshine-bin
+        echo changed
+      register: sunshine_install
+      changed_when: "'changed' in sunshine_install.stdout"
+
+    - name: Configuración de Sunshine (captura wlroots + NVENC)
+      become: false
+      ansible.builtin.lineinfile:
+        path: /home/pabpereza/.config/sunshine/sunshine.conf
+        regexp: "^{{ item.key }} *="
+        line: "{{ item.key }} = {{ item.value }}"
+        create: true
+        mode: "0644"
+      loop:
+        - { key: capture, value: wlr }
+        - { key: encoder, value: nvenc }
+      register: sunshine_conf
 
     - name: Arrancar Sunshine con la sesión del usuario
       become: false
@@ -85,7 +105,8 @@
         name: app-dev.lizardbyte.app.Sunshine.service
         scope: user
         enabled: true
-        state: started
+        state: "{{ 'restarted' if (sunshine_install.changed or sunshine_conf.changed) else 'started' }}"
+        daemon_reload: "{{ sunshine_install.changed }}"
       environment:
         XDG_RUNTIME_DIR: /run/user/1000
 

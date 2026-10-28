@@ -11,6 +11,16 @@ services:
     container_name: postiz
     image: ghcr.io/gitroomhq/postiz-app:v2.23.0
     restart: always
+    # The Temporal worker is created only once at startup and never retried: if Temporal is not
+    # accepting connections yet, posts stay queued forever. depends_on is ignored when Docker
+    # restarts the containers itself (restart: always), so wait here on every start.
+    command:
+      - sh
+      - -c
+      - >-
+        until node -e "require('net').connect(7233,'temporal').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))";
+        do echo 'waiting for temporal'; sleep 3; done;
+        nginx && pnpm run pm2
     env_file: /opt/secrets/postiz/app.env
     environment:
       MAIN_URL: https://postiz.pabpereza.dev

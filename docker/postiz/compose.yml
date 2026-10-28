@@ -42,6 +42,11 @@ services:
       DISABLE_SSRF_PROTECTION: "true"
       # Analytics spend the small X API read quota: keep it for publishing.
       DISABLE_X_ANALYTICS: "true"
+    # Postiz fetches its own uploads from the public URL to publish media. From inside the LAN the
+    # public IP is not reachable (no NAT loopback on the router), so resolve it to the tower,
+    # where NPM serves the same hostname and certificate.
+    extra_hosts:
+      - "postiz.pabpereza.dev:host-gateway"
     ports:
       - "5000:5000"   # frontend (internal nginx)
       - "3000:3000"   # backend, for the MCP endpoints that nginx buffers

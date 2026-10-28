@@ -14,10 +14,17 @@ services:
     # The Temporal worker is created only once at startup and never retried: if Temporal is not
     # accepting connections yet, posts stay queued forever. depends_on is ignored when Docker
     # restarts the containers itself (restart: always), so wait here on every start.
+    # Also patches the LinkedIn provider: fixText() applies Little Text Format escaping to comments,
+    # but the Comments API takes plain text, so "_ ( ) #..." are published with backslashes
+    # (gitroomhq/postiz-app#1847). Remove the sed when that issue is fixed in the image.
     command:
       - sh
       - -c
       - >-
+        for f in /app/apps/*/dist/libraries/nestjs-libraries/src/integrations/social/linkedin.provider.js; do
+        sed -i 's/text: this.fixText(post.message),/text: post.message,/' "$$f";
+        grep -q 'text: post.message,' "$$f" && echo "linkedin comment patch applied: $$f" || echo "linkedin comment patch NOT applied: $$f";
+        done;
         until node -e "require('net').connect(7233,'temporal').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))";
         do echo 'waiting for temporal'; sleep 3; done;
         nginx && pnpm run pm2

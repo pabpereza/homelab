@@ -97,6 +97,10 @@
       loop:
         - { key: capture, value: wlr }
         - { key: encoder, value: nvenc }
+        # La web solo admite localhost por defecto (CSRF); se entra por el nombre o la IP de la torre
+        - key: csrf_allowed_origins
+          value: >-
+            https://castle:47990,https://castle.tail7a4722.ts.net:47990,https://192.168.2.100:47990,https://192.168.1.250:47990
       register: sunshine_conf
 
     - name: Arrancar Sunshine con la sesión del usuario

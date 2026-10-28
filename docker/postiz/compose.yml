@@ -9,14 +9,14 @@ x-db-env: &db_env /opt/secrets/postiz/db.env
 services:
   postiz:
     container_name: postiz
-    image: ghcr.io/gitroomhq/postiz-app:v2.23.0
+    image: ghcr.io/gitroomhq/postiz-app:v2.25.3
     restart: always
     # The Temporal worker is created only once at startup and never retried: if Temporal is not
     # accepting connections yet, posts stay queued forever. depends_on is ignored when Docker
     # restarts the containers itself (restart: always), so wait here on every start.
     # Also patches the LinkedIn provider: fixText() applies Little Text Format escaping to comments,
     # but the Comments API takes plain text, so "_ ( ) #..." are published with backslashes
-    # (gitroomhq/postiz-app#1847). Remove the sed when that issue is fixed in the image.
+    # (gitroomhq/postiz-app#1847, still open in v2.25.3). Remove the sed when that issue is fixed in the image.
     command:
       - sh
       - -c

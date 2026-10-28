@@ -44,7 +44,7 @@ The `infraestructure/` folder contains everything necessary to manage the infras
 -   `ansible.cfg`: Ansible configuration file.
 -   `inventory/hosts`: Ansible inventory with the definition of the hosts that compose the infrastructure.
 -   `update.yml`: Ansible playbook for updating the systems.
--   `castle.yml`: Prepares the tower (host `castle`: Docker on boot, Tailscale exit node and subnet routes, media dir, ufw) and installs doco-cd. Run with `-K`.
+-   `castle.yml`: Prepares the tower (host `castle`: Docker on boot, Tailscale exit node and subnet routes, Sunshine remote desktop, media dir, ufw) and installs doco-cd.
 -   `k3s/`: Playbooks for the deployment and configuration of a k3s cluster.
     -   `main.yml`: Main playbook that orchestrates the installation.
     -   `master.yml`: Playbook for configuring master nodes.

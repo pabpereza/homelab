@@ -72,6 +72,23 @@
         --advertise-routes=192.168.1.0/24,192.168.2.0/24
       changed_when: false
 
+    # Escritorio remoto: Sunshine (servidor) + Moonlight (cliente). Captura el Hyprland real por KMS
+    # (el paquete ya da cap_sys_admin al binario) y codifica con NVENC. Solo LAN y Tailscale.
+    - name: Instalar Sunshine
+      community.general.pacman:
+        name: sunshine
+        state: present
+
+    - name: Arrancar Sunshine con la sesión del usuario
+      become: false
+      ansible.builtin.systemd:
+        name: app-dev.lizardbyte.app.Sunshine.service
+        scope: user
+        enabled: true
+        state: started
+      environment:
+        XDG_RUNTIME_DIR: /run/user/1000
+
     - name: Directorio de media (Emby y Transmission)
       ansible.builtin.file:
         path: /home/pabpereza/media
@@ -146,6 +163,22 @@
         to_port: "{{ item }}"
         comment: "NPM {{ item }} (ufw-docker)"
       loop: ["80", "443"]
+      when: "'Status: active' in ufw_status.stdout"
+
+    - name: Abrir los puertos de Sunshine a la LAN en ufw
+      community.general.ufw:
+        rule: allow
+        from_ip: 192.168.0.0/16
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+        comment: Sunshine
+      loop:
+        - { port: "47984", proto: tcp }        # HTTPS (emparejamiento)
+        - { port: "47989", proto: tcp }        # HTTP
+        - { port: "47990", proto: tcp }        # web de administración
+        - { port: "48010", proto: tcp }        # RTSP
+        - { port: "47998:48000", proto: udp }  # vídeo, control y audio
+        - { port: "48010", proto: udp }
       when: "'Status: active' in ufw_status.stdout"
 
     - name: Permitir el tráfico de Tailscale en ufw

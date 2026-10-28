@@ -15,6 +15,19 @@
         enabled: true
         state: started
 
+    # El router solo reenvía puertos (NAT/DMZ) hacia 192.168.1.0/24: la torre necesita una IP ahí
+    # para el 80/443 de NPM. La 192.168.2.100 sigue siendo la principal.
+    - name: Segunda IP de la torre en 192.168.1.0/24
+      ansible.builtin.shell: |
+        c=$(nmcli -g GENERAL.CONNECTION device show eno1)
+        if ! nmcli -g ipv4.addresses connection show "$c" | grep -q "192.168.1.250/16"; then
+          nmcli connection modify "$c" +ipv4.addresses 192.168.1.250/16
+          nmcli device reapply eno1
+          echo changed
+        fi
+      register: second_ip
+      changed_when: "'changed' in second_ip.stdout"
+
     - name: Arrancar SSH al inicio
       ansible.builtin.systemd:
         name: sshd
